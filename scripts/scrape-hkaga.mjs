@@ -153,6 +153,8 @@ const MANUAL = {
   "Vita Tower": { lat: 22.248541, lng: 114.164659 },
   "Hing Wai Centre": { lat: 22.248534, lng: 114.147323 },
   "E Tat Factory Building": { lat: 22.24872, lng: 114.16845 },
+  // Barrack Block 喺 Tai Kwun 入面，用 Tai Kwun 中間座標（Nominatim 核實）
+  "Barrack Block": { lat: 22.281945, lng: 114.154245 },
 };
 
 async function geocode(venue, address) {
