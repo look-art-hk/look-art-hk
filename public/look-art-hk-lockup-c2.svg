@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 130" width="1240" height="260">
+  <g transform="translate(10 5) scale(1.2)">
+    <ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#5B2A86" stroke-width="5" transform="rotate(-20 50 50)"/>
+    <circle cx="50" cy="50" r="15.5" fill="#FF4F9A"/>
+  </g>
+  <text x="142" y="85" font-family="Avenir, 'Avenir Next', sans-serif" font-size="56" font-weight="800" fill="#5B2A86" letter-spacing="1" textLength="450" lengthAdjust="spacingAndGlyphs">LOOK! ART HK</text>
+</svg>
