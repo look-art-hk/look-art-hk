@@ -243,29 +243,54 @@ async function upsertToSupabase(items, log = console.log) {
   if (!url || !key) throw new Error("缺 SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
 
   const now = new Date().toISOString().slice(0, 10);
+
+  // 讀返現有 rows，做座標 merge：新 geocode 唔中但 DB 有座標 → 保留 DB 值
+  // （Nominatim 會間中限流，唔想「一次唔中就整走以前搵到嘅座標」）
+  const existing = new Map();
+  try {
+    const prev = await fetch(`${url}/rest/v1/events?select=slug,lat,lng&limit=1000`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (prev.ok) {
+      for (const r of await prev.json()) existing.set(r.slug, r);
+    }
+  } catch (e) {
+    log(`warn: 讀唔到既有 events（${e.message}），照樣 upsert`);
+  }
+
   const rows = items
     .filter((it) => it.start_date && it.end_date)
-    .filter((it) => it.end_date >= now) // 未完結先要 ← archive 都會 retain，所以全部 upsert，let DB 處理
-    .map((it) => ({
-      // 用 hkaga:<id> 做 slug 確保幂等
-      slug: `hkaga-${it.source_id}`,
-      title_zh: it.title_en,
-      title_en: it.title_en,
-      venue_zh: it.venue_en,
-      venue_en: it.venue_en,
-      address_zh: it.address_en,
-      category: "展覽",
-      start_date: it.start_date,
-      end_date: it.end_date,
-      price_zh: "免費入場（營業時間內）", // HKAGA 未有票價資料；Display 之後可以自訂
-      lat: it.lat,
-      lng: it.lng,
-      summary_zh: it.description_en,
-      summary_en: it.description_en,
-      tags: it.district ? [it.district.toLowerCase()] : [],
-      source: "scrape",
-      approved: true,
-    }));
+    .map((it) => {
+      const slug = `hkaga-${it.source_id}`;
+      // merge：今次冇座標就用返 DB 既值
+      if ((it.lat == null || it.lng == null) && existing.has(slug)) {
+        const ex = existing.get(slug);
+        if (ex.lat != null && ex.lng != null) {
+          it.lat = ex.lat;
+          it.lng = ex.lng;
+          log(`merge: [${it.source_id}] 用返 DB 既有座標 ${ex.lat},${ex.lng}`);
+        }
+      }
+      return {
+        slug,
+        title_zh: it.title_en,
+        title_en: it.title_en,
+        venue_zh: it.venue_en,
+        venue_en: it.venue_en,
+        address_zh: it.address_en,
+        category: "展覽",
+        start_date: it.start_date,
+        end_date: it.end_date,
+        price_zh: "免費入場（營業時間內）", // HKAGA 未有票價資料；Display 之後可以自訂
+        lat: it.lat,
+        lng: it.lng,
+        summary_zh: it.description_en,
+        summary_en: it.description_en,
+        tags: it.district ? [it.district.toLowerCase()] : [],
+        source: "scrape",
+        approved: true,
+      };
+    });
 
   const res = await fetch(`${url}/rest/v1/events?on_conflict=slug`, {
     method: "POST",
