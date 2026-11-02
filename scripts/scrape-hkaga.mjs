@@ -267,7 +267,7 @@ async function upsertToSupabase(items, log = console.log) {
       approved: true,
     }));
 
-  const res = await fetch(`${url}/rest/v1/events`, {
+  const res = await fetch(`${url}/rest/v1/events?on_conflict=slug`, {
     method: "POST",
     headers: {
       apikey: key,
