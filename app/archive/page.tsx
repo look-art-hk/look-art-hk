@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { events, formatDateRange } from "@/lib/events";
+import { events as sampleEvents, formatDateRange, type LookEvent } from "@/lib/events";
+import { getLiveEvents } from "@/lib/live";
 
 export const metadata = {
   title: "活動檔案 — LOOK! ART HK",
@@ -7,8 +8,11 @@ export const metadata = {
 
 // 檔案 = 每個檔期活動嘅永久紀錄。
 // 目標：一年後返嚟，都可以喺度搵返「2026年11月 有咩展、有咩聲音」。
-export default function ArchivePage() {
-  const byYearMonth = new Map<string, typeof events>();
+export default async function ArchivePage() {
+  const live = await getLiveEvents();
+  const events = live && live.length ? live : sampleEvents;
+
+  const byYearMonth = new Map<string, LookEvent[]>();
   for (const e of events) {
     const key = e.startDate.slice(0, 7); // YYYY-MM
     if (!byYearMonth.has(key)) byYearMonth.set(key, []);

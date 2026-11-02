@@ -1,8 +1,16 @@
 import Link from "next/link";
-import { events, formatDateRange } from "@/lib/events";
+import { events as sampleEvents, formatDateRange, type LookEvent } from "@/lib/events";
+import { getLiveEvents } from "@/lib/live";
 import MapShell from "@/components/MapShell";
 
-export default function Home() {
+async function getData(): Promise<{ events: LookEvent[]; live: boolean }> {
+  const live = await getLiveEvents();
+  if (live && live.length) return { events: live, live: true };
+  return { events: sampleEvents, live: false };
+}
+
+export default async function Home() {
+  const { events, live } = await getData();
   return (
     <>
       <section
@@ -33,7 +41,9 @@ export default function Home() {
           本週地圖
         </h2>
         <p className="mt-1 text-sm text-[color:var(--muted)]">
-          示範資料：5 個真實場地 + 虛構展覽。點 pin 或者點列表睇詳情同留言。
+          {live
+            ? "資料來源：HK-AGA（香港畫廊協會）會員畫廊，每日自動更新。點 pin 或者點列表睇詳情同留言。"
+            : "示範資料：5 個真實場地 + 虛構展覽。點 pin 或者點列表睇詳情同留言。"}
         </p>
         <div className="mt-5 h-[440px] overflow-hidden rounded-2xl border border-black/10 shadow-sm">
           <MapShell events={events} />

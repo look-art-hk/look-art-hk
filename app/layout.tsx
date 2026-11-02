@@ -69,7 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               LOOK! ART HK 係香港文化藝術活動嘅交流平台、評論、地圖同檔案。
             </p>
             <p className="mt-4 text-xs text-white/50">
-              現時網站全部活動資料均為示範性質（虛構展覽、真實場地），正式上線前會以自動抓取 + 畫廊自助提交 + 用戶提交取代。
+              展覽資料來源：HK-AGA（香港畫廊協會）會員畫廊官方網站，每日自動更新；標明「示範」嘅項目為示範資料。地圖底圖由 OpenStreetMap 提供。
             </p>
           </div>
         </footer>

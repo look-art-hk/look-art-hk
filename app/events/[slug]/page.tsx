@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { events, getEvent, formatDateRange } from "@/lib/events";
+import { events, getEvent, formatDateRange, type LookEvent } from "@/lib/events";
+import { getLiveEvents, getLiveEvent } from "@/lib/live";
 import MapShell from "@/components/MapShell";
 import CommentSection from "@/components/CommentSection";
 
@@ -14,10 +15,15 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const e = getEvent(slug);
+  // 先睇 static demo，搵唔到就由 Supabase 抓
+  let e: LookEvent | undefined = getEvent(slug);
+  if (!e) e = ((await getLiveEvent(slug)) ?? undefined) as LookEvent | undefined;
   if (!e) notFound();
 
-  const others = events.filter((o) => o.slug !== slug);
+  const others: LookEvent[] = [
+    ...events.filter((o) => o.slug !== slug),
+    ...((await getLiveEvents()) ?? []).filter((o) => o.slug !== slug && !events.some((s) => s.slug === o.slug)),
+  ].slice(0, 6);
 
   return (
     <article className="mx-auto max-w-6xl px-5 py-10">
@@ -51,7 +57,8 @@ export default async function EventPage({
             <div>
               <dt className="text-[color:var(--muted)]">場地</dt>
               <dd style={{ fontWeight: 700 }}>
-                {e.venueZh}（{e.venueEn}）
+                {e.venueZh}
+                {e.venueEn && e.venueEn !== e.venueZh ? `（${e.venueEn}）` : ""}
               </dd>
               <dd className="text-[color:var(--muted)]">{e.addressZh}</dd>
             </div>
