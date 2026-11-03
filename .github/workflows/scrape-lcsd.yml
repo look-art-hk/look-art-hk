@@ -1,0 +1,32 @@
+# 每日一更：康文署開放數據 → 展覽／視覺藝術活動 → Supabase events 表
+# 用同一組 Secrets：SUPABASE_URL、SUPABASE_SERVICE_ROLE_KEY
+name: Scrape LCSD exhibitions
+
+on:
+  schedule:
+    # 每日 UTC 22:10 = 香港 06:10（錯開 HK-AGA 嗰個）
+    - cron: "10 22 * * *"
+  workflow_dispatch: {} # 仲可以喺 GitHub 手動撳 Run
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Scrape & upsert
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/scrape-lcsd.mjs
+
+      - name: Notify failure
+        if: failure()
+        run: echo "scrape 失敗，睇上面 log"
